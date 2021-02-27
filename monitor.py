@@ -1,6 +1,5 @@
 import requests
 import os
-from bs4 import BeautifulSoup
 from twilio.rest import Client
 from lxml import html
 from dotenv import load_dotenv
