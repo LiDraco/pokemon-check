@@ -7,8 +7,10 @@ import time
 import logging
 import json
 
-count = 0
+initial = 0
+checked = []
 load_dotenv(verbose=True)
+
 ############################################################################################################################################################################################################################################################################################
 URL_TO_MONITOR = "https://www.amazon.com/s?k=pokemon+card&i=toys-and-games&rh=n%3A165793011%2Cp_89%3APokemon%2Cp_6%3AATVPDKIKX0DER&s=date-desc-rank&dc&pldnSite=1&qid=1611716828&sa-no-redirect=1&ref=sr_st_date-desc-rank"
 DELAY_TIME = 60  # seconds
@@ -16,7 +18,8 @@ DELAY_TIME = 60  # seconds
 TWILIO_ACCOUNT_SID = os.getenv("TWILIOSID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIOTOKEN")
 TWILIO_PHONE_SENDER = os.getenv("TWILIOSENDER")
-TWILIO_PHONE_RECIPIENT = json.loads(os.getenv("TWILIORECIPIENT"))
+TWILIO_PHONE_RECIPIENT = os.getenv("TWILIORECIPIENT")  # Single Number
+# TWILIO_PHONE_RECIPIENT = json.loads(os.getenv("TWILIORECIPIENT")) # Multiple Numbers
 ############################################################################################################################################################################################################################################################################################
 
 
@@ -24,15 +27,15 @@ def send_text_alert(alert_str):
     """Sends an SMS text alert."""
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     # single recippient
-    # message = client.messages.create(
-    #     to=TWILIO_PHONE_RECIPIENT, from_=TWILIO_PHONE_SENDER, body=alert_str
-    # )
+    message = client.messages.create(
+        to=TWILIO_PHONE_RECIPIENT, from_=TWILIO_PHONE_SENDER, body=alert_str
+    )
 
     # multiple recipients
-    for number in TWILIO_PHONE_RECIPIENT:
-        message = client.messages.create(
-            to=number, from_=TWILIO_PHONE_SENDER, body=alert_str
-        )
+    # for number in TWILIO_PHONE_RECIPIENT:
+    #     message = client.messages.create(
+    #         to=number, from_=TWILIO_PHONE_SENDER, body=alert_str
+    #     )
 
 
 def webpage_was_changed():
@@ -47,13 +50,18 @@ def webpage_was_changed():
 
     page = requests.get(URL_TO_MONITOR, headers=headers)
     tree = html.fromstring(page.text)
+
     current = tree.xpath(
         '//*[@id="search"]/span/div/span/h1/div/div[1]/div/div/span[1]/text()'
     )[0].split()[0]
-    log.info("Current Count: " + current)
-    global count
-    if current > count:
-        count = current
+    log.info("CURRENT STOCK: " + current)
+
+    x = current.split("-") #When stock is shown as 1-24+
+    length = len(x)
+    curr = x[length - 1]
+    global initial
+    if curr > initial:
+        initial = curr
         return True
     else:
         return False
@@ -72,11 +80,13 @@ def main():
 
     page = requests.get(URL_TO_MONITOR, headers=headers)
     tree = html.fromstring(page.text)
-    global count
-    count = tree.xpath(
+
+    global initial
+    initial = tree.xpath(
         '//*[@id="search"]/span/div/span/h1/div/div[1]/div/div/span[1]/text()'
     )[0].split()[0]
-    log.info("Initial Count: " + count)
+    log.info("INITIAL STOCK: " + initial)
+
     while True:
         try:
             if webpage_was_changed():
