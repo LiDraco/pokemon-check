@@ -7,6 +7,9 @@ import time
 import logging
 import json
 
+
+#@TODO ADD RESET SO I DONT HAVE TO RESTART IF 
+
 initial = 0
 checked = []
 load_dotenv(verbose=True)
