@@ -22,6 +22,9 @@ To set up Twilio notifications create an account and create a dotenv file to sto
 - Sender # (Provided by Twilio)
 - Receiver #
 
+## Discord Webhook
+
+Copy the webhook link from discord and add it to your dotenv file 
 ## Changing the site/element
 
 In order to change the site being monitored just replace the link in URL_TO_MONITOR.
